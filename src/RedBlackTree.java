@@ -197,6 +197,150 @@ public class RedBlackTree extends BinarySearchTree{
     }
 
 
+    public RedBlackNode remove(Comparable c){
+        if(super.getRoot()==null){
+            return null;
+        }
+        else{
+            return remove((RedBlackNode)super.getRoot(), null, null, null, c);
+        }
+    }
+
+    private RedBlackNode remove(RedBlackNode node, RedBlackNode g, RedBlackNode a, RedBlackNode aa, Comparable c){
+        RedBlackNode root = (RedBlackNode) super.getRoot();
+        root.setColor(1);
+        //check for color swap
+        if (node.left()!=null&&node.right()!=null){
+            RedBlackNode left = (RedBlackNode) node.left();
+            RedBlackNode right = (RedBlackNode) node.right();
+            if (left.getColor()==0&&right.getColor()==0){
+                //colorSwap
+                colorSwap(node);
+                if(node==super.getRoot()){
+                    node.setColor(1);
+                }
+                else{
+                    //check for rotations
+                    if (g.getColor()==0){
+                        //identify which rotation
+
+                        if (a.value().compareTo(g.value())<0){
+                            //right
+                            if (g.value().compareTo(node.value())<0){
+                                //right right
+                                RedBlackNode n = rightRightRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+
+                            }
+                            else{
+                                //right left
+                                RedBlackNode n = rightLeftRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            //left
+                            if (g.value().compareTo(node.value())<0){
+                                //left right
+                                RedBlackNode n = leftRightRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                            else{
+                                //left left
+                                RedBlackNode n = leftLeftRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (node.value().equals(c)){
+            //leaf
+            if (node.left()==null&&node.right()==null){
+                if(node.value().compareTo(g.value())<0){
+                    g.setLeft(null);
+                }
+                else{
+                    g.setRight(null);
+                }
+                return node;
+            }
+            //has left child
+            else if (node.left()!=null&&node.right()==null){
+                RedBlackNode child = (RedBlackNode) node.left();
+                if (child.getColor()==0){
+                    if(node.value().compareTo(g.value())<0){
+                        RedBlackNode n = simpleCaseDeletion(node, child);
+                        g.setLeft(n);
+                    }
+                    else{
+                        RedBlackNode n = simpleCaseDeletion(node, child);
+                        g.setRight(n);
+                    }
+                    return node;
+                }
+                else{
+                    if (node.getColor()==0){
+                        if(node.value().compareTo(g.value())<0){
+                            RedBlackNode n = simpleCaseDeletion(node, child);
+                            g.setLeft(n);
+                        }
+                        else{
+                            RedBlackNode n = simpleCaseDeletion(node, child);
+                            g.setRight(n);
+                        }
+                        return node;
+                    }
+                    else{
+                        
+                    }
+                }
+            }
+        }
+    }
+
     public RedBlackNode[] testFind(Comparable c){
         return findStuff(c);
     }
@@ -245,7 +389,12 @@ public class RedBlackTree extends BinarySearchTree{
     }
 
 
-
+    private RedBlackNode simpleCaseDeletion(RedBlackNode node, RedBlackNode child){
+        node.setRight(null);
+        node.setLeft(null);
+        child.setColor(1);
+        return child;
+    }
 
 
     private void colorSwap(RedBlackNode node){
