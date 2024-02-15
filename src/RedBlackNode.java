@@ -18,4 +18,19 @@ public class RedBlackNode extends BinaryNode{
     public void setColor(int i){
         color=i;
     }
+
+    public String toString(){
+        String s="";
+        if(color==0){
+            s+="r";
+        }
+        else if (color==1){
+            s+="b";
+        }
+        else{
+            s+="db";
+        }
+        s+=super.value();
+        return s;
+    }
 }
