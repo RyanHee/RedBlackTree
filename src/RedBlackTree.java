@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
@@ -202,13 +203,19 @@ public class RedBlackTree extends BinarySearchTree{
         if(super.getRoot()==null){
             return null;
         }
+        System.out.println(fullLevelOrder());
         RedBlackNode[]lst=findStuff(c);
+        System.out.println(Arrays.toString(lst));
         //0 node, 1 g, 2 sibling, 3 a, 4 aa
         RedBlackNode node =lst[0];
+        System.out.println(node);
         RedBlackNode g = lst[1];
         RedBlackNode a = lst[3];
         RedBlackNode aa =lst[4];
-
+        //System.out.println("hehee: "+fullLevelOrder());
+        Stack<RedBlackNode>rbStack=findAllAncestorsRB(c);
+        System.out.println(rbStack);
+        //rbStack.pop();
         //check for color swap
 
 
@@ -216,6 +223,7 @@ public class RedBlackTree extends BinarySearchTree{
         //leaf
         if (node.left()==null&&node.right()==null){
             if (node.getColor()==0){
+                //System.out.println("here");
                 if(node.value().compareTo(g.value())<0){
                     g.setLeft(null);
                 }
@@ -225,36 +233,92 @@ public class RedBlackTree extends BinarySearchTree{
                 return node;
             }
             else{
-                Stack<BinaryNode> stack = findAllAncestors(g.value());
-                //recolor(g);
-                //stack.pop();
-                while (!stack.isEmpty()){
-                    RedBlackNode n = (RedBlackNode) stack.pop();
-                    if (n.getColor()==2){
-                        if (n.value().equals(super.getRoot().value())){
-                            n.setColor(1);
-                        }
-                        else{
-                            recolor(n);
-                        }
-                    }
-                    else{
-                        break;
-                    }
+                if (rbStack.isEmpty()){
+                    super.setRoot(null);
+                    return node;
                 }
-                if (node.value().compareTo(g.value())<0){
-                    g.setLeft(null);
+                RedBlackNode n = rbStack.pop();
+                //System.out.println("n: "+n);
+                recolor(n);
+                if(node.value().compareTo(g.value())<0){
+                    n.setLeft(null);
                 }
                 else{
-                    g.setRight(null);
+                    n.setRight(null);
+                }
+                rbStack.push(n);
+
+                //System.out.println("hehee: "+fullLevelOrder());
+                while (!rbStack.isEmpty()){
+                    RedBlackNode nd = rbStack.pop();
+                    if (nd.getColor()==2){
+                        if (nd.value().equals(super.getRoot().value())){
+                            nd.setColor(1);
+                            super.setRoot(nd);
+                            break;
+                        }
+                        else{
+                            RedBlackNode nd1 = rbStack.pop();
+                            recolor(nd1);
+                            rbStack.push(nd1);
+                        }
+
+                    }
+                    //System.out.println("hehee1: "+fullLevelOrder());
                 }
                 return node;
             }
         }
+
         //has left child
         else if (node.left()!=null&&node.right()==null){
             RedBlackNode child = (RedBlackNode) node.left();
-            if (child.getColor()==0){
+            return checkLeft(node, child, g, a, rbStack);
+
+        }
+        else if (node.left()==null&&node.right()!=null){
+            RedBlackNode child = (RedBlackNode) node.right();
+            return checkRight(node, child, g, a, rbStack);
+        }
+        else{
+            RedBlackNode iosuccessor=(RedBlackNode) super.successor(node);
+            swap(node, iosuccessor);
+            System.out.println("here");
+            System.out.println(super.getRoot());
+            if (node.right()==iosuccessor){
+                RedBlackNode r = (RedBlackNode) iosuccessor.right();
+                rbStack.push(node);
+                return checkRight(iosuccessor,r,node,a,rbStack);
+            }
+            return remove(c);
+        }
+
+    }
+
+
+
+    private void swap(RedBlackNode a, RedBlackNode b){
+        Comparable c = a.value();
+        a.setValue(b.value());
+        b.setValue(c);
+    }
+
+    private RedBlackNode checkLeft(RedBlackNode node, RedBlackNode child, RedBlackNode g, RedBlackNode a, Stack<RedBlackNode>rbStack){
+        //red child
+        if (child.getColor()==0){
+            if(node.value().compareTo(g.value())<0){
+                RedBlackNode n = simpleCaseDeletion(node, child);
+                g.setLeft(n);
+            }
+            else{
+                RedBlackNode n = simpleCaseDeletion(node, child);
+                g.setRight(n);
+            }
+            return node;
+        }
+        else{
+            //del node is red
+            if (node.getColor()==0){
                 if(node.value().compareTo(g.value())<0){
                     RedBlackNode n = simpleCaseDeletion(node, child);
                     g.setLeft(n);
@@ -265,41 +329,47 @@ public class RedBlackTree extends BinarySearchTree{
                 }
                 return node;
             }
+            //del node is black
             else{
-                if (node.getColor()==0){
-                    if(node.value().compareTo(g.value())<0){
-                        RedBlackNode n = simpleCaseDeletion(node, child);
-                        g.setLeft(n);
-                    }
-                    else{
-                        RedBlackNode n = simpleCaseDeletion(node, child);
-                        g.setRight(n);
-                    }
-                    return node;
-                }
-                else{
-                    if(node.value().compareTo(g.value())<0){
-                        g.setLeft(node.left());
-                        node.setLeft(null);
-                        RedBlackNode s = (RedBlackNode) g.right();
-                        if (g.getColor()==1){
-                            if (s.left()==null&&s.right()==null){
-                                //recolor, black black
-                                Stack<BinaryNode> stack = findAllAncestors(g.value());
-                                recolor(g);
-                                //stack.pop();
-                                while (!stack.isEmpty()){
-                                    RedBlackNode n = (RedBlackNode) stack.pop();
-                                    if (n.getColor()==2){
-                                        if (n.value().equals(super.getRoot().value())){
-                                            n.setColor(1);
+                if(node.value().compareTo(g.value())<0){
+                    //node is left
+                    g.setLeft(child);
+                    node.setLeft(null);
+                    RedBlackNode s = (RedBlackNode) g.right();
+                    if (g.getColor()==1) {
+                        if (s.getColor() == 0) {
+                            //red sibling
+                            //adjustment left
+                            RedBlackNode n = adjustmentLeft(g, s);
+                            if (n.value().compareTo(a) < 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                        else{
+                            //black sibling
+                            if (s.left()==null && s.right()==null){
+                                RedBlackNode n = rbStack.pop();
+                                System.out.println("n: "+n);
+                                recolor(n);
+                                rbStack.push(n);
+                                System.out.println("hehee: "+fullLevelOrder());
+                                while (!rbStack.isEmpty()){
+                                    RedBlackNode nd = rbStack.pop();
+                                    if (nd.getColor()==2){
+                                        if (nd.value().equals(super.getRoot().value())){
+                                            nd.setColor(1);
+                                            super.setRoot(nd);
+                                            break;
                                         }
                                         else{
-                                            recolor(n);
+                                            RedBlackNode nd1 = rbStack.pop();
+                                            recolor(nd1);
+                                            rbStack.push(nd1);
                                         }
-                                    }
-                                    else{
-                                        break;
+
                                     }
                                 }
                                 return node;
@@ -308,7 +378,7 @@ public class RedBlackTree extends BinarySearchTree{
                                 RedBlackNode l = (RedBlackNode) s.left();
                                 if (l.getColor()==1){
                                     //recolor, black black
-                                    Stack<BinaryNode> stack = findAllAncestors(g.value());
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
                                     recolor(g);
                                     //stack.pop();
                                     while (!stack.isEmpty()){
@@ -350,7 +420,7 @@ public class RedBlackTree extends BinarySearchTree{
                                 RedBlackNode r = (RedBlackNode) s.right();
                                 if (r.getColor()==1){
                                     //recolor, black black
-                                    Stack<BinaryNode> stack = findAllAncestors(g.value());
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
                                     recolor(g);
                                     //stack.pop();
                                     while (!stack.isEmpty()){
@@ -387,6 +457,7 @@ public class RedBlackTree extends BinarySearchTree{
                                     }
                                 }
                             }
+
                             else{
                                 RedBlackNode r = (RedBlackNode) s.right();
                                 if (r.getColor()==0){
@@ -428,21 +499,639 @@ public class RedBlackTree extends BinarySearchTree{
 
 
                         }
-
                     }
                     else{
-                        RedBlackNode n = simpleCaseDeletion(node, child);
-                        g.setRight(n);
+                        //red parent
+                        if (s.right()==null && s.left()==null){
+                            recolor(g);
+                            return node;
+                        }
+                        else{
+                            //specialcaseleft
+                            RedBlackNode n = specialCaseLeft(g, s);
+                            if (a.value().compareTo(n)>0){
+                                a.setLeft(n);
+                            }
+                            else{
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                    }
+
+                }
+                else{
+                    //node is right
+                    g.setRight(child);
+                    node.setLeft(null);
+                    RedBlackNode s = (RedBlackNode) g.left();
+                    if (g.getColor()==1) {
+                        if (s.getColor() == 0) {
+                            //red sibling
+                            //adjustment left
+                            RedBlackNode n = adjustmentRight(g, s);
+                            if (n.value().compareTo(a) < 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                        else{
+                            //black sibling
+                            if (s.left()==null && s.right()==null){
+                                RedBlackNode n = rbStack.pop();
+                                System.out.println("n: "+n);
+                                recolor(n);
+                                rbStack.push(n);
+                                System.out.println("hehee: "+fullLevelOrder());
+                                while (!rbStack.isEmpty()){
+                                    RedBlackNode nd = rbStack.pop();
+                                    if (nd.getColor()==2){
+                                        if (nd.value().equals(super.getRoot().value())){
+                                            nd.setColor(1);
+                                            super.setRoot(nd);
+                                            break;
+                                        }
+                                        else{
+                                            RedBlackNode nd1 = rbStack.pop();
+                                            recolor(nd1);
+                                            rbStack.push(nd1);
+                                        }
+
+                                    }
+                                }
+                                return node;
+                            }
+                            else if (s.left()!=null&&s.right()==null){
+                                RedBlackNode l = (RedBlackNode) s.left();
+                                if (l.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right left restructure
+                                    RedBlackNode n = leftLeftRestructure(g,s,l);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else if (s.left()==null && s.right()!=null){
+                                RedBlackNode r = (RedBlackNode) s.right();
+                                if (r.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right right restructure
+                                    RedBlackNode n = leftRightRestructure(g,s,r);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else{
+                                RedBlackNode l = (RedBlackNode) s.left();
+                                if (l.getColor()==0){
+                                    RedBlackNode n = rightLeftRestructure(g,s,l);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                                else{
+                                    RedBlackNode r = (RedBlackNode) s.right();
+                                    if (r.getColor()==0){
+                                        RedBlackNode n = rightRightRestructure(g,s,r);
+                                        if (a==null){
+                                            super.setRoot(n);
+                                            return node;
+                                        }
+                                        else{
+                                            if (a.value().compareTo(n.value())>0){
+                                                a.setLeft(n);
+                                            }
+                                            else{
+                                                a.setRight(n);
+                                            }
+                                            return node;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                    else {
+                        //red parent
+                        if (s.right() == null && s.left() == null) {
+                            recolor(g);
+                            return node;
+                        }
+                        else {
+                            //specialcaseleft
+                            RedBlackNode n = specialCaseLeft(g, s);
+                            if (a.value().compareTo(n) > 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
                     }
                 }
             }
         }
-
-
         return node;
     }
 
 
+    private RedBlackNode checkRight(RedBlackNode node, RedBlackNode child, RedBlackNode g, RedBlackNode a, Stack<RedBlackNode>rbStack){
+        //red child
+        if (child==null){
+            if (node.getColor()==0){
+                if(node.value().compareTo(g.value())<0){
+                    g.setLeft(null);
+                }
+                else{
+                    //RedBlackNode n = simpleCaseDeletion(node, child);
+                    g.setRight(null);
+                }
+            }
+        }
+        if (child.getColor()==0){
+            if(node.value().compareTo(g.value())<0){
+                RedBlackNode n = simpleCaseDeletion(node, child);
+                g.setLeft(n);
+            }
+            else{
+                RedBlackNode n = simpleCaseDeletion(node, child);
+                g.setRight(n);
+            }
+            return node;
+        }
+        else{
+            //del node is red
+            if (node.getColor()==0){
+                if(node.value().compareTo(g.value())<0){
+                    RedBlackNode n = simpleCaseDeletion(node, child);
+                    g.setLeft(n);
+                }
+                else{
+                    RedBlackNode n = simpleCaseDeletion(node, child);
+                    g.setRight(n);
+                }
+                return node;
+            }
+            //del node is black
+            else{
+                if(node.value().compareTo(g.value())<0){
+                    //node is left
+                    g.setLeft(child);
+                    node.setRight(null);
+                    RedBlackNode s = (RedBlackNode) g.right();
+                    if (g.getColor()==1) {
+                        if (s.getColor() == 0) {
+                            //red sibling
+                            //adjustment left
+                            RedBlackNode n = adjustmentLeft(g, s);
+                            if (n.value().compareTo(a) < 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                        else{
+                            //black sibling
+                            if (s.left()==null && s.right()==null){
+                                RedBlackNode n = rbStack.pop();
+                                System.out.println("n: "+n);
+                                recolor(n);
+                                rbStack.push(n);
+                                System.out.println("hehee: "+fullLevelOrder());
+                                while (!rbStack.isEmpty()){
+                                    RedBlackNode nd = rbStack.pop();
+                                    if (nd.getColor()==2){
+                                        if (nd.value().equals(super.getRoot().value())){
+                                            nd.setColor(1);
+                                            super.setRoot(nd);
+                                            break;
+                                        }
+                                        else{
+                                            RedBlackNode nd1 = rbStack.pop();
+                                            recolor(nd1);
+                                            rbStack.push(nd1);
+                                        }
+
+                                    }
+                                }
+                                return node;
+                            }
+                            else if (s.left()!=null&&s.right()==null){
+                                RedBlackNode l = (RedBlackNode) s.left();
+                                if (l.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right left restructure
+                                    RedBlackNode n = rightLeftRestructure(g,s,l);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else if (s.left()==null && s.right()!=null){
+                                RedBlackNode r = (RedBlackNode) s.right();
+                                if (r.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right right restructure
+                                    RedBlackNode n = rightRightRestructure(g,s,r);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else{
+                                RedBlackNode r = (RedBlackNode) s.right();
+                                if (r.getColor()==0){
+                                    RedBlackNode n = rightRightRestructure(g,s,r);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                                else{
+                                    RedBlackNode l = (RedBlackNode) s.left();
+                                    if (l.getColor()==0){
+                                        RedBlackNode n = rightLeftRestructure(g,s,l);
+                                        if (a==null){
+                                            super.setRoot(n);
+                                            return node;
+                                        }
+                                        else{
+                                            if (a.value().compareTo(n.value())>0){
+                                                a.setLeft(n);
+                                            }
+                                            else{
+                                                a.setRight(n);
+                                            }
+                                            return node;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                    else{
+                        //red parent
+                        if (s.right()==null && s.left()==null){
+                            recolor(g);
+                            return node;
+                        }
+                        else{
+                            //specialcaseleft
+                            RedBlackNode n = specialCaseLeft(g, s);
+                            if (a.value().compareTo(n)>0){
+                                a.setLeft(n);
+                            }
+                            else{
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                    }
+
+                }
+                else{
+                    //node is right
+                    g.setRight(child);
+                    node.setRight(null);
+                    RedBlackNode s = (RedBlackNode) g.left();
+                    if (g.getColor()==1) {
+                        if (s.getColor() == 0) {
+                            //red sibling
+                            //adjustment left
+                            RedBlackNode n = adjustmentRight(g, s);
+                            if (n.value().compareTo(a) < 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                        else{
+                            //black sibling
+                            if (s.left()==null && s.right()==null){
+                                RedBlackNode n = rbStack.pop();
+                                System.out.println("n: "+n);
+                                recolor(n);
+                                rbStack.push(n);
+                                System.out.println("hehee: "+fullLevelOrder());
+                                while (!rbStack.isEmpty()){
+                                    RedBlackNode nd = rbStack.pop();
+                                    if (nd.getColor()==2){
+                                        if (nd.value().equals(super.getRoot().value())){
+                                            nd.setColor(1);
+                                            super.setRoot(nd);
+                                            break;
+                                        }
+                                        else{
+                                            RedBlackNode nd1 = rbStack.pop();
+                                            recolor(nd1);
+                                            rbStack.push(nd1);
+                                        }
+
+                                    }
+                                }
+                                return node;
+                            }
+                            else if (s.left()!=null&&s.right()==null){
+                                RedBlackNode l = (RedBlackNode) s.left();
+                                if (l.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right left restructure
+                                    RedBlackNode n = leftLeftRestructure(g,s,l);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else if (s.left()==null && s.right()!=null){
+                                RedBlackNode r = (RedBlackNode) s.right();
+                                if (r.getColor()==1){
+                                    //recolor, black black
+                                    Stack<BinaryNode> stack = super.findAllAncestors(g.value());
+                                    recolor(g);
+                                    //stack.pop();
+                                    while (!stack.isEmpty()){
+                                        RedBlackNode n = (RedBlackNode) stack.pop();
+                                        if (n.getColor()==2){
+                                            if (n.value().equals(super.getRoot().value())){
+                                                n.setColor(1);
+                                            }
+                                            else{
+                                                recolor(n);
+                                            }
+                                        }
+                                        else{
+                                            break;
+                                        }
+                                    }
+                                    return node;
+                                }
+                                else{
+                                    //right right restructure
+                                    RedBlackNode n = leftRightRestructure(g,s,r);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                            }
+
+                            else{
+                                RedBlackNode l = (RedBlackNode) s.left();
+                                if (l.getColor()==0){
+                                    RedBlackNode n = rightLeftRestructure(g,s,l);
+                                    if (a==null){
+                                        super.setRoot(n);
+                                        return node;
+                                    }
+                                    else{
+                                        if (a.value().compareTo(n.value())>0){
+                                            a.setLeft(n);
+                                        }
+                                        else{
+                                            a.setRight(n);
+                                        }
+                                        return node;
+                                    }
+                                }
+                                else{
+                                    RedBlackNode r = (RedBlackNode) s.right();
+                                    if (r.getColor()==0){
+                                        RedBlackNode n = rightRightRestructure(g,s,r);
+                                        if (a==null){
+                                            super.setRoot(n);
+                                            return node;
+                                        }
+                                        else{
+                                            if (a.value().compareTo(n.value())>0){
+                                                a.setLeft(n);
+                                            }
+                                            else{
+                                                a.setRight(n);
+                                            }
+                                            return node;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+                    else {
+                        //red parent
+                        if (s.right() == null && s.left() == null) {
+                            recolor(g);
+                            return node;
+                        }
+                        else {
+                            //specialcaseleft
+                            RedBlackNode n = specialCaseLeft(g, s);
+                            if (a.value().compareTo(n) > 0) {
+                                a.setLeft(n);
+                            } else {
+                                a.setRight(n);
+                            }
+                            return node;
+                        }
+                    }
+                }
+            }
+        }
+        return node;
+    }
 
 
     public RedBlackNode[] testFind(Comparable c){
@@ -453,6 +1142,7 @@ public class RedBlackTree extends BinarySearchTree{
         RedBlackNode[]lst = new RedBlackNode[5];
         //0 node, 1 g, 2 sibling, 3 a, 4 aa
         if (super.getRoot()==null){
+            System.out.println("wtf");
             return lst;
         }
         RedBlackNode root = (RedBlackNode) super.getRoot();
@@ -582,6 +1272,35 @@ public class RedBlackTree extends BinarySearchTree{
         }
 
     }
+
+    private RedBlackNode specialCaseLeft(RedBlackNode p, RedBlackNode s){
+        recolor(s);
+        p.setRight(s.left());
+        s.setLeft(p);
+        recolor(p);
+        return s;
+    }
+
+
+    private RedBlackNode specialCaseRight(RedBlackNode p, RedBlackNode s){
+        recolor(s);
+        p.setLeft(s.right());
+        s.setRight(p);
+        recolor(p);
+        return s;
+    }
+
+    private RedBlackNode adjustmentLeft(RedBlackNode p, RedBlackNode s){
+        rightRightRotation(p, s,(RedBlackNode) s.right());
+        recolor(p);
+        return s;
+    }
+    private RedBlackNode adjustmentRight(RedBlackNode p, RedBlackNode s){
+        leftRightRotation(p,s,(RedBlackNode) s.left());
+        recolor(p);
+        return s;
+    }
+
     private RedBlackNode rightRightRestructure(RedBlackNode p,
                                                RedBlackNode s, RedBlackNode r)
     {
@@ -709,5 +1428,160 @@ public class RedBlackTree extends BinarySearchTree{
         return s;
 
     }
+
+    public Stack<RedBlackNode> findAllAncestorsRB(Comparable s){
+        if (super.getRoot()==null){
+            return new Stack<>();
+        }
+        if (super.getRoot().value().equals(s)){
+            return new Stack<>();
+        }
+        return findAllAncestors((RedBlackNode) super.getRoot(), null, null, null, s, new Stack<RedBlackNode>());
+    }
+
+    private Stack<RedBlackNode> findAllAncestors(RedBlackNode node, RedBlackNode g, RedBlackNode a, RedBlackNode aa, Comparable s, Stack<RedBlackNode> lst){
+        RedBlackNode root = (RedBlackNode) super.getRoot();
+        root.setColor(1);
+        if (node.left()!=null&&node.right()!=null){
+            RedBlackNode left = (RedBlackNode) node.left();
+            RedBlackNode right = (RedBlackNode) node.right();
+            if (left.getColor()==0&&right.getColor()==0){
+                //colorSwap
+                colorSwap(node);
+                if(node==super.getRoot()){
+                    node.setColor(1);
+                }
+                else{
+                    //check for rotations
+                    if (g.getColor()==0){
+                        //identify which rotation
+
+                        if (a.value().compareTo(g.value())<0){
+                            //right
+                            if (g.value().compareTo(node.value())<0){
+                                //right right
+                                RedBlackNode n = rightRightRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+
+                            }
+                            else{
+                                //right left
+                                RedBlackNode n = rightLeftRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            //left
+                            if (g.value().compareTo(node.value())<0){
+                                //left right
+                                RedBlackNode n = leftRightRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                            else{
+                                //left left
+                                RedBlackNode n = leftLeftRotation(a, g, node);
+                                if (aa==null){
+                                    super.setRoot(n);
+                                }
+                                else{
+                                    if (aa.value().compareTo(n.value())>0){
+                                        aa.setLeft(n);
+                                    }
+                                    else{
+                                        aa.setRight(n);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (node==null){
+            return lst;
+        }
+        if (node.left()!=null){
+            if (node.left().value().equals(s)){
+                lst.add(node);
+                return lst;
+            }
+        }
+        if (node.right()!=null){
+            if (node.right().value().equals(s)){
+                lst.add(node);
+                return lst;
+            }
+        }
+        if (s.compareTo(node.value())<0){
+            lst.add(node);
+            return findAllAncestors((RedBlackNode) node.left(), node, g, a, s, lst);
+        }
+        else{
+            lst.add(node);
+            return findAllAncestors((RedBlackNode) node.right(), node, g, a, s, lst);
+        }
+    }
+
+    public String[] forDraw(){
+        String[]lst=new String[63];
+        Queue<BinaryNode>queue = new LinkedList<>();
+        queue.add(super.getRoot());
+        int idx=0;
+        for (int x=0;x<6;x++){
+            int length = queue.size();
+            //String s="";
+            for (int i=0;i<length;i++){
+                //s="";
+                if (queue.peek()==null){
+                    queue.remove();
+                    lst[idx]=" ";
+                    queue.add(null);
+                    queue.add(null);
+                }
+                else{
+                    RedBlackNode n = (RedBlackNode) queue.remove();
+                    lst[idx]= n.toString();
+                    queue.add(n.left());
+                    queue.add(n.right());
+                }
+                idx++;
+            }
+            //s=s.substring(0,s.length()-1);
+            //lst[x]=s;
+        }
+
+        return lst;
+    }
+
 
 }
