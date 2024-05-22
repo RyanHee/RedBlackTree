@@ -37,8 +37,8 @@ public class BinaryNode{
 
     public int childCount(){
         int cnt=0;
-        if (left==null)cnt++;
-        if (right==null)cnt++;
+        if (left!=null)cnt++;
+        if (right!=null)cnt++;
         return cnt;
     }
 

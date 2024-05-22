@@ -12,14 +12,14 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
 
 
     private boolean showCursor;
-    private RedBlackTree tree;
+    private RBT tree;
     private String input;
     private String s, display;
     private BufferedImage img, top, bottom, node;
     private JButton addB, delB;
     private Timer timer;
     public Panel(){
-        tree = new RedBlackTree();
+        tree = new RBT();
         input = "";
         showCursor=true;
         s="";
@@ -36,7 +36,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
         }
         addKeyListener(this);
 
-
+        for (int i=1;i<=6;i++)tree.add(new RedBlackNode(i));
         setFocusable(true);
         timer = new Timer(500, this); // Toggle cursor visibility every 500 ms
         timer.start();
