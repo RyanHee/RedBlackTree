@@ -6,20 +6,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 public class Panel extends JPanel implements KeyListener, ActionListener {
 
 
     private boolean showCursor;
-    private RBT tree;
+    private RedBlackTree tree;
     private String input;
     private String s, display;
     private BufferedImage img, top, bottom, node;
     private JButton addB, delB;
     private Timer timer;
     public Panel(){
-        tree = new RBT();
+        tree = new RedBlackTree();
         input = "";
         showCursor=true;
         s="";
@@ -200,15 +199,15 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
         for (int i=0;i<63;i++){
             fontMetrics=g.getFontMetrics();
             if (lst[i]!=null){
-                if (lst[i].getColor()==0){
+                if (lst[i].color==0){
                     g.setColor(new Color(255, 0, 0));
                 }
                 else{
                     //g.setColor(new Color(0, 0, 0));
                     g.setColor(new Color(0, 140, 100));
                 }
-                width = fontMetrics.stringWidth(lst[i].value().toString());
-                g.drawString(lst[i].value().toString(),xlst[i]-70*w/i3-width/2,215*w/i2+ylst[i]);
+                width = fontMetrics.stringWidth(lst[i].value.toString());
+                g.drawString(lst[i].value.toString(),xlst[i]-70*w/i3-width/2,215*w/i2+ylst[i]);
             }
             else{
                 g.setColor(new Color(255, 255, 255));
