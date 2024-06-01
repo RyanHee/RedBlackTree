@@ -1,21 +1,13 @@
 public class RedBlackNode extends BinaryNode{
 
-    private int color;
+    public byte color;
     public RedBlackNode(Comparable value){
         super(value);
         color=0;
     }
 
-    public RedBlackNode(Comparable value, int i){
+    public RedBlackNode(Comparable value, byte i){
         super(value);
-        color=i;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public void setColor(int i){
         color=i;
     }
 
@@ -28,7 +20,7 @@ public class RedBlackNode extends BinaryNode{
             s+="b";
         if (color==2)
             s+="db";
-        s+=super.value();
+        s+=value;
         return s;
     }
 }
