@@ -35,7 +35,7 @@ public class Panel extends JPanel implements KeyListener, ActionListener {
         }
         addKeyListener(this);
 
-        for (int i=1;i<=6;i++)tree.add(new RedBlackNode(i));
+        //for (int i=1;i<=6;i++)tree.add(new RedBlackNode(i));
         setFocusable(true);
         timer = new Timer(500, this); // Toggle cursor visibility every 500 ms
         timer.start();

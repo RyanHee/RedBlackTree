@@ -171,28 +171,19 @@ public class RedBlackTree extends BinarySearchTree {
 
     }
 
-    private void print(String s) {
-        System.out.println(s);
-    }
-
-
     public RedBlackNode remove(Comparable c) {
         if (root == null) return null;
         if (!contains(c)) return null;
 
-        RedBlackNode target = (RedBlackNode) get(c);
+        RedBlackNode target = get(c);
 
-        if (target.left == null && target.right == null) { // leaf
-            print("leaf remove");
+        if (target.left == null && target.right == null) {
             leafRemove(target);
         } else if (target.right == null) {
-            print("target has left child");
             OCRemoveLeft(target);
         } else if (target.left == null) {
-            print("target has right child");
             OCRemoveRight(target);
         } else {
-            print("target has 2 children");
             RedBlackNode successor = (RedBlackNode) successor(target);
             remove1(successor);
             target.value = successor.value;
@@ -202,19 +193,11 @@ public class RedBlackTree extends BinarySearchTree {
 
     private RedBlackNode remove1(RedBlackNode target) {
         if (root == null) return null;
-        //print(target.toString());
-        //print(levelOrder());
-        //RedBlackNode target = (RedBlackNode) get(c);
-        //print(target.left().toString());
-
-        if (target.left == null && target.right == null) { // leaf
-            print("leaf remove");
+        if (target.left == null && target.right == null) {
             leafRemove(target);
         } else if (target.right == null) {
-            print("target has left child");
             OCRemoveLeft(target);
         } else if (target.left == null) {
-            print("target has right child");
             OCRemoveRight(target);
         }
         return new RedBlackNode(target.value);
@@ -229,16 +212,13 @@ public class RedBlackTree extends BinarySearchTree {
             return node;
         } else if (node.value.compareTo(s) > 0) {
             if (node.left != null) {
-                print("go left");
                 return get((RedBlackNode) node.left, s);
             }
         } else {
             if (node.right != null) {
-                print("go right");
                 return get((RedBlackNode) node.right, s);
             }
         }
-        print("return null");
         return null;
     }
 
@@ -246,88 +226,61 @@ public class RedBlackTree extends BinarySearchTree {
     private void OCRemoveRight(RedBlackNode node) {
         RedBlackNode p = (RedBlackNode) parent(root, node.value);
         RedBlackNode right = (RedBlackNode) node.right;
-        if (node.color == 0) {
-            print("What?");
-        } else {
-            if (right.color == 0) {
-                print("simple case deletion");
-                if (p.isLeft(node)) p.left = simpleCaseDeletion(node, right);
-                else p.right = simpleCaseDeletion(node, right);
-            } else {
-                print("target child black");
-                right.color = 2;
-                if (p.isLeft(node)) {
-                    print("target at right");
-                    p.left = right;
-                    restructure(p);
-                } else {
-                    print("target at right");
-                    p.right = right;
-                    restructure(p);
-                }
-            }
 
+        if (right.color == 0) {
+            if (p.isLeft(node)) p.left = simpleCaseDeletion(node, right);
+            else p.right = simpleCaseDeletion(node, right);
+        } else {
+            right.color = 2;
+            if (p.isLeft(node)) {
+                p.left = right;
+                restructure(p);
+            } else {
+                p.right = right;
+                restructure(p);
+            }
         }
     }
-
 
     private void OCRemoveLeft(RedBlackNode node) {
         RedBlackNode p = (RedBlackNode) parent(root, node.value);
         RedBlackNode left = (RedBlackNode) node.left;
-        if (node.color == 0) {
-            print("What?");
-        } else {
-            if (left.color == 0) {
-                print("simple case deletion");
-                if (p.isLeft(node)) p.left = simpleCaseDeletion(node, left);
-                else p.right = simpleCaseDeletion(node, left);
-            } else {
-                print("target child black");
-                left.color = 2;
-                if (p.isLeft(node)) {
-                    print("target at left");
-                    p.left = left;
-                    restructure(p);
-                } else {
-                    print("target at right");
-                    p.right = left;
-                    restructure(p);
-                }
-            }
 
+        if (left.color == 0) {
+            if (p.isLeft(node)) p.left = simpleCaseDeletion(node, left);
+            else p.right = simpleCaseDeletion(node, left);
+        } else {
+            left.color = 2;
+            if (p.isLeft(node)) {
+                p.left = left;
+                restructure(p);
+            } else {
+                p.right = left;
+                restructure(p);
+            }
         }
     }
-
 
     private void leafRemove(RedBlackNode node) {
         if (node.color == 0) {
-            //red leaf
-            print("red leaf");
             RedBlackNode p = (RedBlackNode) parent(root, node.value);
             if (p.isLeft(node)) {
-                print("leaf is left");
                 p.left = null;
             } else {
-                print("leaf is right");
                 p.right = null;
             }
 
         } else {
-            //black leaf
-            print("black leaf");
             RedBlackNode p = (RedBlackNode) parent(root, node.value);
             if (p.isLeft(node)) {
-                print("leaf is left");
                 p.left = null;
                 restructure(p);
             } else {
-                print("leaf is right");
                 p.right = null;
                 restructure(p);
             }
         }
     }
-
 
     private void restructure(RedBlackNode parent) {
         if (parent == null) {
@@ -340,31 +293,23 @@ public class RedBlackTree extends BinarySearchTree {
         RedBlackNode left = (RedBlackNode) parent.left;
         RedBlackNode right = (RedBlackNode) parent.right;
         if (left == null || left.color == 2) {
-
             RedBlackNode gp = (RedBlackNode) parent(root, parent.value);
-            //boolean left=gp.isLeft(parent);
             RedBlackNode sibling = (RedBlackNode) parent.right;
             RedBlackNode temp = parent;
             if (rrr(parent)) {
-                print("right right restructure");
                 RedBlackNode r = (RedBlackNode) sibling.right;
                 temp = rightRightRestructure(parent, sibling, r);
             } else if (rlr(parent)) {
-                print("right left restructure");
                 RedBlackNode r = (RedBlackNode) sibling.left;
                 temp = rightLeftRestructure(parent, sibling, r);
             } else if (al(parent)) {
-                print("adj left");
                 temp = adjustmentLeft(parent, sibling);
             } else if (prop(parent, true)) {
-                print("propagate");
                 recolor(parent);
                 restructure1(gp);
             } else if (sl(parent)) {
-                print("special left no right");
                 temp = specialCaseLeftNoRight(parent, sibling);
             } else {
-                print("special left");
                 temp = specialCaseLeft(parent, sibling);
             }
             if (isRoot) root = temp;
@@ -375,29 +320,22 @@ public class RedBlackTree extends BinarySearchTree {
 
         } else if (right == null || right.color == 2) {
             RedBlackNode gp = (RedBlackNode) parent(root, parent.value);
-            //boolean left=gp.isLeft(parent);
             RedBlackNode sibling = (RedBlackNode) parent.left;
             RedBlackNode temp = parent;
             if (llr(parent)) {
-                print("left left restructure");
                 RedBlackNode r = (RedBlackNode) sibling.left;
                 temp = leftLeftRestructure(parent, sibling, r);
             } else if (lrr(parent)) {
-                print("left right restructure");
                 RedBlackNode r = (RedBlackNode) sibling.right;
                 temp = leftRightRestructure(parent, sibling, r);
             } else if (ar(parent)) {
-                print("adj right");
                 temp = adjustmentRight(parent, sibling);
             } else if (prop(parent, false)) {
-                print("propagate");
                 recolor(parent);
                 restructure1(gp);
             } else if (sr(parent)) {
-                print("special case right no left");
                 temp = specialCaseRightNoLeft(parent, sibling);
             } else {
-                print("special right");
                 temp = specialCaseRight(parent, sibling);
             }
             if (isRoot) root = temp;
@@ -420,33 +358,24 @@ public class RedBlackTree extends BinarySearchTree {
         boolean isRoot = parent.value.equals(root.value);
         RedBlackNode left = (RedBlackNode) parent.left;
         RedBlackNode right = (RedBlackNode) parent.right;
-        print("after propagate");
         if (left.color == 2) {
-            print("left is db");
             RedBlackNode gp = (RedBlackNode) parent(root, parent.value);
-            //boolean left=gp.isLeft(parent);
             RedBlackNode sibling = (RedBlackNode) parent.right;
             RedBlackNode temp = parent;
             if (rrr(parent)) {
-                print("right right restructure");
                 RedBlackNode r = (RedBlackNode) sibling.right;
                 temp = rightRightRestructure(parent, sibling, r);
             } else if (rlr(parent)) {
-                print("right left restructure");
                 RedBlackNode r = (RedBlackNode) sibling.left;
                 temp = rightLeftRestructure(parent, sibling, r);
             } else if (al(parent)) {
-                print("adj left");
                 temp = adjustmentLeft(parent, sibling);
             } else if (prop(parent, true)) {
-                print("propagate");
                 recolor(parent);
                 restructure1(gp);
             } else if (sl(parent)) {
-                print("special left no right");
                 temp = specialCaseLeftNoRight(parent, sibling);
             } else {
-                print("special left");
                 temp = specialCaseLeft(parent, sibling);
             }
             if (isRoot) root = temp;
@@ -456,31 +385,23 @@ public class RedBlackTree extends BinarySearchTree {
             }
 
         } else if (right.color == 2) {
-            print("right is db");
             RedBlackNode gp = (RedBlackNode) parent(root, parent.value);
-            //boolean left=gp.isLeft(parent);
             RedBlackNode sibling = (RedBlackNode) parent.left;
             RedBlackNode temp = parent;
             if (llr(parent)) {
-                print("left left restructure");
                 RedBlackNode r = (RedBlackNode) sibling.left;
                 temp = leftLeftRestructure(parent, sibling, r);
             } else if (lrr(parent)) {
-                print("left right restructure");
                 RedBlackNode r = (RedBlackNode) sibling.right;
                 temp = leftRightRestructure(parent, sibling, r);
             } else if (ar(parent)) {
-                print("adj right");
                 temp = adjustmentRight(parent, sibling);
             } else if (prop(parent, false)) {
-                print("propagate");
                 recolor(parent);
                 restructure1(gp);
             } else if (sr(parent)) {
-                print("special case right no left");
                 temp = specialCaseRightNoLeft(parent, sibling);
             } else {
-                print("special right");
                 temp = specialCaseRight(parent, sibling);
             }
             if (isRoot) root = temp;
@@ -492,7 +413,6 @@ public class RedBlackTree extends BinarySearchTree {
         RedBlackNode r = (RedBlackNode) root;
         r.color = 1;
     }
-
 
     private int redChildCount(RedBlackNode n) {
         RedBlackNode temp;
@@ -519,20 +439,16 @@ public class RedBlackTree extends BinarySearchTree {
         return false;
     }
 
-
     private boolean sl(RedBlackNode parent) {
         RedBlackNode sibling = (RedBlackNode) parent.right;
         if (parent.color == 0) {
-            //print("ok");
             if (sibling.color == 1 && sibling.left != null && sibling.right == null) {
-                //print("ok 1");
                 RedBlackNode x = (RedBlackNode) sibling.left;
                 return x.color == 0;
             }
         }
         return false;
     }
-
 
     private boolean prop(RedBlackNode parent, boolean isLeft) {
         RedBlackNode sibling;
@@ -560,11 +476,8 @@ public class RedBlackTree extends BinarySearchTree {
     private boolean al(RedBlackNode parent) {
         RedBlackNode sibling = (RedBlackNode) parent.right;
         if (parent.color == 1) {
-            //print("1");
             if (sibling.color == 0) {
-                //print("2");
                 if (sibling.childCount() == 2) {
-                    //print("3");
                     RedBlackNode l = (RedBlackNode) sibling.left;
                     RedBlackNode r = (RedBlackNode) sibling.right;
                     if (l.color == r.color && r.color == 1) {
@@ -590,7 +503,6 @@ public class RedBlackTree extends BinarySearchTree {
         }
         return false;
     }
-
 
     private boolean llr(RedBlackNode parent) {
         RedBlackNode sibling = (RedBlackNode) parent.left;
@@ -637,7 +549,6 @@ public class RedBlackTree extends BinarySearchTree {
         return false;
     }
 
-
     private RedBlackNode specialCaseLeftNoRight(RedBlackNode p, RedBlackNode s) {
         RedBlackNode left = (RedBlackNode) s.left;
         p.right = leftLeftRotation(s, left, (RedBlackNode) left.left);
@@ -657,7 +568,6 @@ public class RedBlackTree extends BinarySearchTree {
         recolor(p);
         return s;
     }
-
 
     private RedBlackNode specialCaseRight(RedBlackNode p, RedBlackNode s) {
         colorSwap(s);
@@ -679,8 +589,7 @@ public class RedBlackTree extends BinarySearchTree {
         return s;
     }
 
-    private RedBlackNode rightRightRestructure(RedBlackNode p,
-                                               RedBlackNode s, RedBlackNode r) {
+    private RedBlackNode rightRightRestructure(RedBlackNode p, RedBlackNode s, RedBlackNode r) {
         rightRightRotation(p, s, r);
         colorSwap(s);
         if (p.left != null) {
@@ -728,7 +637,6 @@ public class RedBlackTree extends BinarySearchTree {
         return child;
     }
 
-
     private void colorSwap(RedBlackNode node) {
         RedBlackNode left = (RedBlackNode) node.left;
         RedBlackNode right = (RedBlackNode) node.right;
@@ -765,7 +673,6 @@ public class RedBlackTree extends BinarySearchTree {
         return leftLeftRotation(gp, x, p);
     }
 
-
     public RedBlackNode[] forDrawRB() {
         RedBlackNode[] lst = new RedBlackNode[63];
         Queue<BinaryNode> queue = new LinkedList<>();
@@ -773,9 +680,7 @@ public class RedBlackTree extends BinarySearchTree {
         int idx = 0;
         for (int x = 0; x < 6; x++) {
             int length = queue.size();
-            //String s="";
             for (int i = 0; i < length; i++) {
-                //s="";
                 if (queue.peek() == null) {
                     queue.remove();
                     lst[idx] = null;
@@ -789,11 +694,7 @@ public class RedBlackTree extends BinarySearchTree {
                 }
                 idx++;
             }
-            //s=s.substring(0,s.length()-1);
-            //lst[x]=s;
         }
-
         return lst;
     }
-
 }
